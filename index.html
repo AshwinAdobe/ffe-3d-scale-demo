@@ -108,22 +108,6 @@
       font-weight: 700;
     }
 
-    .counter-num {
-      font-family: var(--mono);
-      font-weight: 800;
-      font-size: 12px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.07);
-      color: var(--text);
-      transition: background 0.3s ease, color 0.3s ease;
-    }
-
-    .counter-step.active .counter-num {
-      background: var(--adobe-red);
-      color: #fff;
-    }
-
     .counter-arrow {
       color: rgba(255, 255, 255, 0.22);
       font-size: 11px;
@@ -159,14 +143,6 @@
       letter-spacing: -0.025em;
       line-height: 1.1;
       transition: opacity 0.25s ease, transform 0.25s ease;
-    }
-
-    .beat-subtitle {
-      font-size: 14px;
-      color: var(--muted);
-      margin-top: 5px;
-      max-width: 640px;
-      transition: opacity 0.25s ease;
     }
 
     .hud-stats {
@@ -246,19 +222,12 @@
     }
 
     /* =====================================================================
-       RADIAL / EXPANDING GRAPH SCENE (TWIN -> PACKSHOTS -> LIFESTYLE)
+       UNIFIED RADIAL / EXPANDING GRAPH SCENE (ALL 4 STAGES ON ONE CANVAS)
        ===================================================================== */
     .expansion-layer {
       position: absolute;
       inset: 0;
       z-index: 10;
-      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .expansion-layer.docked-out {
-      opacity: 0;
-      transform: scale(0.92);
-      pointer-events: none;
     }
 
     /* Center Digital Twin Hub */
@@ -274,7 +243,7 @@
       border: 2px solid rgba(235, 16, 0, 0.65);
       box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
       transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1), border-color 0.4s ease;
-      z-index: 15;
+      z-index: 18;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -288,6 +257,11 @@
 
     .twin-core.ultra-compact {
       transform: translate(-50%, -50%) scale(0.38);
+      border-color: var(--adobe-red);
+    }
+
+    .twin-core.micro-core {
+      transform: translate(-50%, -50%) scale(0.30);
       border-color: var(--adobe-red);
     }
 
@@ -314,7 +288,7 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
     }
 
-    /* Packshot & Lifestyle Cards that Burst Out from Center */
+    /* Packshot, Lifestyle & Animation Cards that Burst Out from Center */
     .spawn-card {
       position: absolute;
       left: 50%;
@@ -342,13 +316,21 @@
     }
 
     .spawn-card.receded {
-      opacity: 0.38;
-      transform: translate(calc(-50% + var(--tx) * 0.58), calc(-50% + var(--ty) * 0.58)) scale(0.66);
-      filter: saturate(0.75);
+      opacity: 0.30;
+      transform: translate(calc(-50% + var(--tx) * 0.56), calc(-50% + var(--ty) * 0.56)) scale(0.62);
+      filter: saturate(0.7);
+      z-index: 10;
+    }
+
+    .spawn-card.deep-receded {
+      opacity: 0.17;
+      transform: translate(calc(-50% + var(--tx) * 0.38), calc(-50% + var(--ty) * 0.38)) scale(0.46);
+      filter: saturate(0.5);
+      z-index: 8;
     }
 
     .spawn-card.lifestyle-node {
-      width: 268px;
+      width: 262px;
       border-color: rgba(45, 157, 120, 0.55);
       z-index: 14;
     }
@@ -362,7 +344,7 @@
     }
 
     .spawn-card.lifestyle-node img {
-      height: 158px;
+      height: 154px;
     }
 
     .spawn-meta {
@@ -389,206 +371,151 @@
     }
 
     /* =====================================================================
-       ANIMATIONS WITH COPY SHOWCASE WALL (FLOAT, ZOOM IN/OUT, SPINS, BEZIER TOUR)
+       ANIMATION NODES (STAGE 4 RADIAL EXPANSION WITH LIVE MOTION + COPY)
        ===================================================================== */
-    .animations-layer {
-      position: absolute;
-      inset: 92px 32px 20px 32px;
-      z-index: 20;
-      display: grid;
-      grid-template-columns: 1.35fr 1fr;
-      gap: 20px;
-      opacity: 0;
-      transform: translateY(28px) scale(0.97);
-      pointer-events: none;
-      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    .spawn-card.anim-node {
+      width: 292px;
+      border-color: rgba(235, 16, 0, 0.68);
+      z-index: 16;
+      background: #111217;
     }
 
-    .animations-layer.active {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      pointer-events: auto;
-    }
-
-    /* Live Hero Motion Spot */
-    .hero-motion-stage {
+    .anim-stage-box {
       position: relative;
-      border-radius: 18px;
+      height: 164px;
       overflow: hidden;
-      border: 1px solid var(--border-hi);
-      background: radial-gradient(circle at 66% 42%, rgba(235, 16, 0, 0.38), transparent 55%), #09090c;
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 26px 30px;
+      padding: 12px 14px;
     }
 
-    #motionCanvas {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
-      pointer-events: auto;
-    }
+    .anim-bg-1 { background: radial-gradient(circle at 72% 48%, rgba(235, 16, 0, 0.44), transparent 58%), #09090d; }
+    .anim-bg-2 { background: radial-gradient(circle at 72% 48%, rgba(20, 115, 230, 0.36), rgba(235, 16, 0, 0.22) 55%, #08090d); }
+    .anim-bg-3 { background: radial-gradient(circle at 72% 48%, rgba(235, 16, 0, 0.42), transparent 56%), #07080b; }
+    .anim-bg-4 { background: radial-gradient(circle at 72% 48%, rgba(230, 134, 25, 0.34), rgba(235, 16, 0, 0.25) 58%, #0a0a0e); }
+    .anim-bg-5 { background: radial-gradient(circle at 72% 48%, rgba(45, 157, 120, 0.34), rgba(235, 16, 0, 0.22) 58%, #080a0f); }
+    .anim-bg-6 { background: radial-gradient(circle at 72% 48%, rgba(235, 16, 0, 0.46), rgba(255, 86, 64, 0.18) 56%, #09090c); }
 
-    .motion-overlay-top, .motion-overlay-bottom {
+    .anim-top-row {
       position: relative;
       z-index: 3;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      pointer-events: none;
     }
 
-    .motion-copy-center {
-      position: relative;
-      z-index: 3;
-      max-width: 62%;
-      pointer-events: none;
-    }
-
-    .motion-ribbon {
-      display: inline-block;
+    .anim-node-pill {
       background: var(--adobe-red);
       color: #fff;
-      font-size: 10px;
+      font-family: var(--mono);
+      font-size: 9px;
       font-weight: 800;
-      letter-spacing: 0.1em;
-      padding: 4px 10px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
       border-radius: 999px;
       text-transform: uppercase;
     }
 
-    .motion-spec-badge {
+    .anim-motion-pill {
       font-family: var(--mono);
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.65);
-      border: 1px solid var(--border);
-      color: #fff;
-    }
-
-    .motion-headline {
-      font-size: 46px;
-      font-weight: 900;
-      line-height: 0.94;
-      letter-spacing: -0.03em;
-      text-transform: uppercase;
-      color: #fff;
-      margin-top: 8px;
-      transition: transform 0.22s ease, opacity 0.22s ease;
-    }
-
-    .motion-tagline {
-      font-size: 15px;
-      font-weight: 600;
-      color: rgba(255, 255, 255, 0.86);
-      margin-top: 10px;
-    }
-
-    .motion-chips {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-    }
-
-    .motion-chip {
-      background: rgba(11, 11, 14, 0.78);
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 5px;
+      background: rgba(0, 0, 0, 0.62);
       border: 1px solid rgba(255, 255, 255, 0.16);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
+      color: #fff;
+      text-transform: uppercase;
     }
 
-    .motion-cta {
+    .anim-copy-block {
+      position: relative;
+      z-index: 3;
+      max-width: 58%;
+    }
+
+    .anim-hl {
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 0.96;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .anim-sub {
+      font-size: 10.5px;
+      font-weight: 500;
+      line-height: 1.25;
+      color: rgba(255, 255, 255, 0.82);
+      margin-top: 5px;
+    }
+
+    .anim-cta-badge {
+      position: relative;
+      z-index: 3;
+      align-self: flex-start;
       background: #fff;
       color: #09090c;
-      font-size: 12px;
+      font-size: 9px;
       font-weight: 900;
       letter-spacing: 0.08em;
-      padding: 9px 18px;
+      padding: 4px 10px;
       border-radius: 999px;
       text-transform: uppercase;
     }
 
-    /* Live Wall of Animated Copy Cards */
-    .spots-wall {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-auto-rows: 1fr;
-      gap: 10px;
+    /* Animated Puck inside each Stage 4 card */
+    .anim-puck-sprite {
+      position: absolute;
+      right: -6px;
+      bottom: 8px;
+      width: 138px;
+      height: 138px;
+      object-fit: contain;
+      z-index: 2;
+      pointer-events: none;
+      filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.78));
     }
 
-    .spot-mini-card {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 13px;
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      cursor: pointer;
-      overflow: hidden;
-      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    /* 1. Float */
+    .motion-float {
+      animation: kfFloat 2.6s ease-in-out infinite;
+    }
+    @keyframes kfFloat {
+      0%, 100% { transform: translateY(0px) rotate(-4deg); }
+      50% { transform: translateY(-16px) rotate(5deg); }
     }
 
-    .spot-mini-card:hover {
-      border-color: var(--border-hi);
-      transform: translateY(-2px);
+    /* 2. Zoom In / Out */
+    .motion-zoom {
+      animation: kfZoom 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes kfZoom {
+      0%, 100% { transform: scale(0.78) rotate(-3deg); }
+      50% { transform: scale(1.18) rotate(4deg); }
     }
 
-    .spot-mini-card.active {
-      border-color: var(--adobe-red);
-      background: linear-gradient(135deg, rgba(235, 16, 0, 0.18), rgba(20, 21, 25, 0.95));
+    /* 3. Spins */
+    .motion-spins {
+      animation: kfSpins 2.8s linear infinite;
+    }
+    @keyframes kfSpins {
+      0% { transform: rotate(0deg) scale(0.96); }
+      50% { transform: rotate(180deg) scale(1.04); }
+      100% { transform: rotate(360deg) scale(0.96); }
     }
 
-    .spot-mini-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--muted);
+    /* 4. Bezier Tour */
+    .motion-bezier {
+      animation: kfBezier 3.2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
     }
-
-    .spot-mini-top .pill {
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.07);
-      color: #fff;
-      text-transform: uppercase;
-    }
-
-    .spot-mini-hl {
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      line-height: 1.05;
-      color: #fff;
-      margin: 6px 0 3px;
-    }
-
-    .spot-mini-tag {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.25;
-    }
-
-    .spot-mini-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      font-weight: 800;
-      color: var(--adobe-red);
-      letter-spacing: 0.06em;
-      margin-top: 6px;
+    @keyframes kfBezier {
+      0% { transform: translate(0px, 6px) scale(0.84) rotate(-12deg); }
+      33% { transform: translate(-22px, -18px) scale(1.12) rotate(8deg); }
+      66% { transform: translate(8px, -10px) scale(0.95) rotate(16deg); }
+      100% { transform: translate(0px, 6px) scale(0.84) rotate(-12deg); }
     }
 
     /* Video Player Scrubber Bar at Bottom */
@@ -718,7 +645,7 @@
 
   <!-- MAIN CINEMATIC STAGE -->
   <div class="stage-viewport" id="stageViewport">
-    <!-- Top Narrative Caption & Aesthetic Dual Status Pill -->
+    <!-- Top Narrative Caption & Dual Status Pill -->
     <div class="beat-header">
       <div>
         <div class="beat-title" id="beatTitle">Digital Twin</div>
@@ -736,21 +663,30 @@
       </div>
     </div>
 
-    <!-- EXPANSION LAYER (STAGES 1, 2, 3) -->
+    <!-- UNIFIED RADIAL EXPANSION LAYER (STAGES 1, 2, 3, AND 4) -->
     <div class="expansion-layer" id="expansionLayer">
       <svg class="connector-svg" viewBox="0 0 1440 820" preserveAspectRatio="none">
         <!-- 6 Packshot Connector Lines -->
-        <line class="branch-line pack-line" x1="720" y1="435" x2="310" y2="235" />
-        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="175" />
-        <line class="branch-line pack-line" x1="720" y1="435" x2="1130" y2="235" />
-        <line class="branch-line pack-line" x1="720" y1="435" x2="310" y2="625" />
-        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="675" />
-        <line class="branch-line pack-line" x1="720" y1="435" x2="1130" y2="625" />
-        <!-- 4 Lifestyle Outer Connector Lines -->
-        <line class="branch-line life-line" x1="720" y1="435" x2="225" y2="195" />
-        <line class="branch-line life-line" x1="720" y1="435" x2="1215" y2="195" />
-        <line class="branch-line life-line" x1="720" y1="435" x2="225" y2="660" />
-        <line class="branch-line life-line" x1="720" y1="435" x2="1215" y2="660" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="340" y2="260" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="200" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="1100" y2="260" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="340" y2="610" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="665" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="1100" y2="610" />
+
+        <!-- 4 Lifestyle Connector Lines -->
+        <line class="branch-line life-line" x1="720" y1="435" x2="280" y2="220" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="1160" y2="220" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="280" y2="650" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="1160" y2="650" />
+
+        <!-- 6 Animation Outer Connector Lines -->
+        <line class="branch-line anim-line" x1="720" y1="435" x2="240" y2="215" />
+        <line class="branch-line anim-line" x1="720" y1="435" x2="720" y2="180" />
+        <line class="branch-line anim-line" x1="720" y1="435" x2="1200" y2="215" />
+        <line class="branch-line anim-line" x1="720" y1="435" x2="240" y2="655" />
+        <line class="branch-line anim-line" x1="720" y1="435" x2="720" y2="680" />
+        <line class="branch-line anim-line" x1="720" y1="435" x2="1200" y2="655" />
       </svg>
 
       <!-- Center 3D Twin Hub -->
@@ -759,7 +695,7 @@
         <div class="twin-core-badge">1 CANONICAL TWIN • USDZ</div>
       </div>
 
-      <!-- 6 Studio Packshot Nodes -->
+      <!-- STAGE 2: 3D Packshot Nodes -->
       <div class="spawn-card packshot-node" style="--tx: -380px; --ty: -175px;">
         <img src="assets/packshot-01-hero-three-quarter.png" alt="3/4 Hero Packshot" />
         <div class="spawn-meta"><strong>3/4 PDP Hero</strong><span class="spawn-tag">3D Packshots</span></div>
@@ -785,7 +721,7 @@
         <div class="spawn-meta"><strong>Standing Edge</strong><span class="spawn-tag">3D Packshots</span></div>
       </div>
 
-      <!-- 4 Lifestyle Scene Nodes -->
+      <!-- STAGE 3: Product Placement + Composite Image Nodes -->
       <div class="spawn-card lifestyle-node" style="--tx: -440px; --ty: -215px;">
         <img src="assets/lifestyle-01-rinkside-dasher-glass.png" alt="Rinkside Dasher Glass" />
         <div class="spawn-meta"><strong>Rinkside Dasher Glass</strong><span class="spawn-tag">Product Placement</span></div>
@@ -802,34 +738,103 @@
         <img src="assets/lifestyle-04-overtime-arena-spotlight.png" alt="Overtime Spotlight Scene" />
         <div class="spawn-meta"><strong>Overtime Spotlight</strong><span class="spawn-tag">Composite Image</span></div>
       </div>
-    </div>
 
-    <!-- STAGE 4 LAYER: PLAYABLE ANIMATIONS WITH CAMPAIGN COPY -->
-    <div class="animations-layer" id="animationsLayer">
-      <div class="hero-motion-stage" id="heroMotionStage">
-        <div class="motion-overlay-top">
-          <span class="motion-ribbon" id="motionRibbon">SUDDEN DEATH</span>
-          <span class="motion-spec-badge" id="motionSpec">MOTION: FLOAT</span>
-        </div>
-
-        <div class="motion-copy-center">
-          <div class="motion-headline" id="motionHeadline">OVERTIME HAS TEETH</div>
-          <div class="motion-tagline" id="motionTagline">Stay loud when the third-period clock goes quiet.</div>
-        </div>
-
-        <canvas id="motionCanvas"></canvas>
-
-        <div class="motion-overlay-bottom">
-          <div class="motion-chips" id="motionChips">
-            <span class="motion-chip">FANATICS MARK</span>
-            <span class="motion-chip">USDZ TWIN</span>
-            <span class="motion-chip">FLOAT MOTION</span>
+      <!-- STAGE 4: Animate 3D + DGR Nodes (Burst Out Radially Like Packshots & Lifestyle) -->
+      <div class="spawn-card anim-node" style="--tx: -475px; --ty: -215px;">
+        <div class="anim-stage-box anim-bg-1">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Float</span>
           </div>
-          <div class="motion-cta" id="motionCta">LOCK IN ↗</div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">OVERTIME HAS TEETH</div>
+            <div class="anim-sub">Stay loud when the third-period clock goes quiet.</div>
+          </div>
+          <span class="anim-cta-badge">LOCK IN ↗</span>
+          <img class="anim-puck-sprite motion-float" src="assets/puck-comp-01-goalnet.png" alt="Animated Fanatics Puck" />
         </div>
+        <div class="spawn-meta"><strong>Sudden Death Drop</strong><span class="spawn-tag">Float</span></div>
       </div>
 
-      <div class="spots-wall" id="spotsWall"></div>
+      <div class="spawn-card anim-node" style="--tx: 0px; --ty: -255px;">
+        <div class="anim-stage-box anim-bg-2">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Zoom In / Out</span>
+          </div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">BRING THE BARN</div>
+            <div class="anim-sub">From warmup glass to the top-shelf net cord.</div>
+          </div>
+          <span class="anim-cta-badge">DROP IN ↗</span>
+          <img class="anim-puck-sprite motion-zoom" src="assets/puck-comp-02-fresh-ice.png" alt="Animated Fanatics Puck" />
+        </div>
+        <div class="spawn-meta"><strong>Playoff Top Shelf</strong><span class="spawn-tag">Zoom In/Out</span></div>
+      </div>
+
+      <div class="spawn-card anim-node" style="--tx: 475px; --ty: -215px;">
+        <div class="anim-stage-box anim-bg-3">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Spins</span>
+          </div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">OWN THE RED LINE</div>
+            <div class="anim-sub">Built for heavy slapshots and center-ice authority.</div>
+          </div>
+          <span class="anim-cta-badge">HIT THE ICE ↗</span>
+          <img class="anim-puck-sprite motion-spins" src="assets/puck-comp-04-arena-spotlight.png" alt="Animated Fanatics Puck" />
+        </div>
+        <div class="spawn-meta"><strong>Center Ice Authority</strong><span class="spawn-tag">Spins</span></div>
+      </div>
+
+      <div class="spawn-card anim-node" style="--tx: -475px; --ty: 215px;">
+        <div class="anim-stage-box anim-bg-4">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Bezier Tour</span>
+          </div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">NO QUIET ENTRANCE</div>
+            <div class="anim-sub">Bold Fanatics red across crown and sidewall.</div>
+          </div>
+          <span class="anim-cta-badge">CLAIM YOURS ↗</span>
+          <img class="anim-puck-sprite motion-bezier" src="assets/puck-comp-03-locker-bench.png" alt="Animated Fanatics Puck" />
+        </div>
+        <div class="spawn-meta"><strong>Crown &amp; Edge Sweep</strong><span class="spawn-tag">Bezier Tour</span></div>
+      </div>
+
+      <div class="spawn-card anim-node" style="--tx: 0px; --ty: 245px;">
+        <div class="anim-stage-box anim-bg-5">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Bezier Tour</span>
+          </div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">ICE LEVEL AUTHORITY</div>
+            <div class="anim-sub">Precision emblem detail from every camera sweep.</div>
+          </div>
+          <span class="anim-cta-badge">INSPECT SPEC ↗</span>
+          <img class="anim-puck-sprite motion-bezier" src="assets/puck-comp-02-fresh-ice.png" alt="Animated Fanatics Puck" />
+        </div>
+        <div class="spawn-meta"><strong>Rink Camera Sweep</strong><span class="spawn-tag">Bezier Tour</span></div>
+      </div>
+
+      <div class="spawn-card anim-node" style="--tx: 475px; --ty: 215px;">
+        <div class="anim-stage-box anim-bg-6">
+          <div class="anim-top-row">
+            <span class="anim-node-pill">Animate 3D + DGR</span>
+            <span class="anim-motion-pill">Spins</span>
+          </div>
+          <div class="anim-copy-block">
+            <div class="anim-hl">TAPE TO TAPE</div>
+            <div class="anim-sub">Crisp passes. Clean celly. Official Fanatics emblem.</div>
+          </div>
+          <span class="anim-cta-badge">RUN THE PLAY ↗</span>
+          <img class="anim-puck-sprite motion-spins" src="assets/puck-comp-01-goalnet.png" alt="Animated Fanatics Puck" />
+        </div>
+        <div class="spawn-meta"><strong>Match Day Rotation</strong><span class="spawn-tag">Spins</span></div>
+      </div>
     </div>
   </div>
 
@@ -863,110 +868,6 @@
     let currentTime = 0.0;
     let lastFrameTime = performance.now();
     let currentBeat = 0;
-    let activeSpotIdx = 0;
-    let lastAutoSpotSwitch = 0;
-
-    // Strictly the 4 allowed animation primitives: Float, Zoom In/Out, Spins, Bezier Tour
-    const SPOTS = [
-      {
-        headline: "OVERTIME HAS TEETH",
-        tagline: "Stay loud when the third-period clock goes quiet.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "LOCK IN ↗",
-        motion: "float",
-        label: "Float",
-        bg: "radial-gradient(circle at 68% 42%, rgba(235, 16, 0, 0.44), transparent 56%), #09090c",
-        chips: ["ANIMATE 3D", "DGR", "FLOAT"]
-      },
-      {
-        headline: "BRING THE BARN",
-        tagline: "From warmup glass to the top-shelf net cord.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "DROP IN ↗",
-        motion: "zoom",
-        label: "Zoom In / Out",
-        bg: "radial-gradient(circle at 65% 38%, rgba(255, 48, 30, 0.40), transparent 54%), radial-gradient(circle at 25% 75%, rgba(20, 115, 230, 0.22), #08090d)",
-        chips: ["ANIMATE 3D", "DGR", "ZOOM IN/OUT"]
-      },
-      {
-        headline: "OWN THE RED LINE",
-        tagline: "Built for heavy slapshots and center-ice authority.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "HIT THE ICE ↗",
-        motion: "spins",
-        label: "Spins",
-        bg: "radial-gradient(circle at 68% 46%, rgba(235, 16, 0, 0.42), transparent 52%), #07080b",
-        chips: ["ANIMATE 3D", "DGR", "SPINS"]
-      },
-      {
-        headline: "NO QUIET ENTRANCE",
-        tagline: "Bold Fanatics red across crown and sidewall.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "CLAIM YOURS ↗",
-        motion: "bezier",
-        label: "Bezier Tour",
-        bg: "radial-gradient(circle at 70% 48%, rgba(227, 27, 21, 0.36), transparent 55%), #0a0a0e",
-        chips: ["ANIMATE 3D", "DGR", "BEZIER TOUR"]
-      },
-      {
-        headline: "ICE LEVEL AUTHORITY",
-        tagline: "Precision emblem detail from every camera sweep.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "INSPECT SPEC ↗",
-        motion: "bezier",
-        label: "Bezier Tour",
-        bg: "radial-gradient(circle at 66% 44%, rgba(124, 196, 255, 0.28), transparent 52%), radial-gradient(circle at 30% 70%, rgba(235, 16, 0, 0.26), #080a0f)",
-        chips: ["ANIMATE 3D", "DGR", "BEZIER TOUR"]
-      },
-      {
-        headline: "TAPE TO TAPE",
-        tagline: "Crisp passes. Clean celly. Official Fanatics emblem.",
-        ribbon: "ANIMATE 3D + DGR",
-        cta: "RUN THE PLAY ↗",
-        motion: "spins",
-        label: "Spins",
-        bg: "radial-gradient(circle at 64% 44%, rgba(235, 16, 0, 0.38), transparent 54%), radial-gradient(circle at 25% 68%, rgba(230, 134, 25, 0.22), #09090c)",
-        chips: ["ANIMATE 3D", "DGR", "SPINS"]
-      }
-    ];
-
-    const wallEl = document.getElementById("spotsWall");
-    SPOTS.forEach((s, idx) => {
-      const card = document.createElement("div");
-      card.className = "spot-mini-card" + (idx === 0 ? " active" : "");
-      card.innerHTML = `
-        <div class="spot-mini-top">
-          <span>ANIMATE 3D + DGR</span>
-          <span class="pill">${s.label}</span>
-        </div>
-        <div>
-          <div class="spot-mini-hl">${s.headline}</div>
-          <div class="spot-mini-tag">${s.tagline}</div>
-        </div>
-        <div class="spot-mini-cta">${s.cta}</div>
-      `;
-      card.onclick = () => {
-        setSpot(idx);
-      };
-      wallEl.appendChild(card);
-    });
-
-    function setSpot(idx) {
-      activeSpotIdx = idx;
-      const s = SPOTS[idx];
-      document.querySelectorAll(".spot-mini-card").forEach((el, i) => {
-        el.classList.toggle("active", i === idx);
-      });
-      document.getElementById("motionRibbon").textContent = s.ribbon;
-      document.getElementById("motionSpec").textContent = `ANIMATE 3D • ${s.label.toUpperCase()} • DGR`;
-      document.getElementById("motionHeadline").textContent = s.headline;
-      document.getElementById("motionTagline").textContent = s.tagline;
-      document.getElementById("motionCta").textContent = s.cta;
-      document.getElementById("heroMotionStage").style.background = s.bg;
-      document.getElementById("motionChips").innerHTML = s.chips
-        .map(c => `<span class="motion-chip">${c}</span>`)
-        .join("");
-    }
 
     function applyTimelineState(t) {
       const pct = Math.min(100, Math.max(0, (t / DURATION) * 100));
@@ -975,12 +876,6 @@
       document.getElementById("timeReadout").textContent = `00:${sec} / 00:18`;
 
       const nextBeat = t < 3.6 ? 1 : t < 8.1 ? 2 : t < 13.0 ? 3 : 4;
-
-      if (nextBeat === 4 && t - lastAutoSpotSwitch > 0.95) {
-        lastAutoSpotSwitch = t;
-        setSpot((activeSpotIdx + 1) % SPOTS.length);
-      }
-
       if (nextBeat !== currentBeat) {
         currentBeat = nextBeat;
         updateStageForBeat(nextBeat);
@@ -994,12 +889,12 @@
       });
 
       const twinCore = document.getElementById("twinCore");
-      const expansionLayer = document.getElementById("expansionLayer");
-      const animationsLayer = document.getElementById("animationsLayer");
       const packCards = document.querySelectorAll(".packshot-node");
       const lifeCards = document.querySelectorAll(".lifestyle-node");
+      const animCards = document.querySelectorAll(".anim-node");
       const packLines = document.querySelectorAll(".pack-line");
       const lifeLines = document.querySelectorAll(".life-line");
+      const animLines = document.querySelectorAll(".anim-line");
 
       const title = document.getElementById("beatTitle");
       const nodeEl = document.getElementById("activeNodeValue");
@@ -1009,38 +904,34 @@
         title.textContent = "Digital Twin";
         nodeEl.textContent = "USDZ Twin";
         countEl.textContent = "01";
-
-        expansionLayer.classList.remove("docked-out");
-        animationsLayer.classList.remove("active");
         twinCore.className = "twin-core";
 
         packCards.forEach(c => c.className = "spawn-card packshot-node");
-        lifeCards.forEach(c => c.classList.remove("visible"));
+        lifeCards.forEach(c => c.className = "spawn-card lifestyle-node");
+        animCards.forEach(c => c.className = "spawn-card anim-node");
         packLines.forEach(l => l.classList.remove("visible"));
         lifeLines.forEach(l => l.classList.remove("visible"));
+        animLines.forEach(l => l.classList.remove("visible"));
       } else if (beat === 2) {
         title.textContent = "3D Packshots";
         nodeEl.textContent = "3D Packshots";
         countEl.textContent = "07";
-
-        expansionLayer.classList.remove("docked-out");
-        animationsLayer.classList.remove("active");
         twinCore.className = "twin-core compact";
 
         packCards.forEach((c, idx) => {
-          c.className = "spawn-card packshot-node visible";
           c.style.transitionDelay = (idx * 55) + "ms";
+          c.className = "spawn-card packshot-node visible";
         });
-        lifeCards.forEach(c => c.classList.remove("visible"));
+        lifeCards.forEach(c => c.className = "spawn-card lifestyle-node");
+        animCards.forEach(c => c.className = "spawn-card anim-node");
+
         packLines.forEach(l => l.classList.add("visible"));
         lifeLines.forEach(l => l.classList.remove("visible"));
+        animLines.forEach(l => l.classList.remove("visible"));
       } else if (beat === 3) {
         title.textContent = "Product Placement + Composite Image";
         nodeEl.textContent = "Product Placement · Composite Image";
         countEl.textContent = "11";
-
-        expansionLayer.classList.remove("docked-out");
-        animationsLayer.classList.remove("active");
         twinCore.className = "twin-core ultra-compact";
 
         packCards.forEach(c => {
@@ -1049,17 +940,35 @@
         });
         lifeCards.forEach((c, idx) => {
           c.style.transitionDelay = (idx * 65) + "ms";
-          c.classList.add("visible");
+          c.className = "spawn-card lifestyle-node visible";
         });
+        animCards.forEach(c => c.className = "spawn-card anim-node");
+
         packLines.forEach(l => l.classList.remove("visible"));
         lifeLines.forEach(l => l.classList.add("visible"));
+        animLines.forEach(l => l.classList.remove("visible"));
       } else if (beat === 4) {
         title.textContent = "Animate 3D + DGR";
         nodeEl.textContent = "Animate 3D · DGR";
-        countEl.textContent = "21";
+        countEl.textContent = "17";
+        twinCore.className = "twin-core micro-core";
 
-        expansionLayer.classList.add("docked-out");
-        animationsLayer.classList.add("active");
+        packCards.forEach(c => {
+          c.style.transitionDelay = "0ms";
+          c.className = "spawn-card packshot-node visible deep-receded";
+        });
+        lifeCards.forEach(c => {
+          c.style.transitionDelay = "0ms";
+          c.className = "spawn-card lifestyle-node visible receded";
+        });
+        animCards.forEach((c, idx) => {
+          c.style.transitionDelay = (idx * 60) + "ms";
+          c.className = "spawn-card anim-node visible";
+        });
+
+        packLines.forEach(l => l.classList.remove("visible"));
+        lifeLines.forEach(l => l.classList.remove("visible"));
+        animLines.forEach(l => l.classList.add("visible"));
       }
     }
 
@@ -1073,7 +982,6 @@
 
     function jumpToTime(t) {
       currentTime = t;
-      lastAutoSpotSwitch = t;
       applyTimelineState(currentTime);
     }
 
@@ -1093,13 +1001,7 @@
       requestAnimationFrame(tickTimeline);
     }
 
-    // Cubic Bezier helper for smooth camera/object Bezier Tour
-    function cubicBezier(p0, p1, p2, p3, t) {
-      const u = 1 - t;
-      return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
-    }
-
-    function initBabylonScene(canvasId, isMotionSpot) {
+    function initBabylonScene(canvasId) {
       const canvas = document.getElementById(canvasId);
       const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, alpha: true });
       const scene = new BABYLON.Scene(engine);
@@ -1109,7 +1011,7 @@
         "cam",
         -Math.PI / 2.2,
         1.04,
-        isMotionSpot ? 0.145 : 0.135,
+        0.135,
         new BABYLON.Vector3(0, 0.012, 0),
         scene
       );
@@ -1139,46 +1041,8 @@
 
       engine.runRenderLoop(() => {
         const now = performance.now() / 1000;
-        if (!isMotionSpot) {
-          pivot.rotation.x = 0.32 + 0.08 * Math.sin(now * 1.4);
-          pivot.rotation.y = now * 0.95;
-        } else {
-          const spot = SPOTS[activeSpotIdx];
-          const u = (now % 3.0) / 3.0;
-          const pingPong = u < 0.5 ? u * 2 : (1 - u) * 2;
-          const smoothT = cubicBezier(0, 0.15, 0.85, 1, pingPong);
-
-          // Reset defaults before applying strictly the selected motion
-          pivot.position.set(0.028, -0.002, 0);
-          pivot.rotation.set(0.38, 0, 0);
-          cam.radius = 0.145;
-          cam.alpha = -Math.PI / 2.2;
-          cam.beta = 1.04;
-
-          if (spot.motion === "float") {
-            // 1. Float: gentle vertical levitation + subtle hover bank
-            pivot.position.y = -0.002 + 0.011 * Math.sin(now * 2.4);
-            pivot.rotation.x = 0.38 + 0.07 * Math.sin(now * 1.6);
-            pivot.rotation.z = 0.05 * Math.cos(now * 1.8);
-            pivot.rotation.y = -0.35 + 0.22 * Math.sin(now * 1.1);
-          } else if (spot.motion === "zoom") {
-            // 2. Zoom In / Out: smooth camera dolly in and out along optical axis
-            cam.radius = 0.175 - 0.072 * smoothT;
-            pivot.rotation.x = 0.42 + 0.10 * smoothT;
-            pivot.rotation.y = -0.25 + 0.35 * smoothT;
-          } else if (spot.motion === "spins") {
-            // 3. Spins: continuous crisp 360-degree axial spin showcasing crown + sidewall logo
-            pivot.rotation.x = 0.44;
-            pivot.rotation.y = now * 3.4;
-            pivot.rotation.z = 0.08 * Math.sin(now * 1.7);
-          } else if (spot.motion === "bezier") {
-            // 4. Bezier Tour: multi-point cubic-bezier camera arc from crown top-down to macro sidewall
-            cam.alpha = cubicBezier(-2.35, -1.75, -0.95, -0.45, smoothT);
-            cam.beta = cubicBezier(0.42, 0.72, 1.32, 1.18, smoothT);
-            cam.radius = cubicBezier(0.155, 0.112, 0.118, 0.148, smoothT);
-            pivot.rotation.y = cubicBezier(-0.4, 0.2, 0.9, 1.4, smoothT);
-          }
-        }
+        pivot.rotation.x = 0.32 + 0.08 * Math.sin(now * 1.4);
+        pivot.rotation.y = now * 0.95;
         scene.render();
       });
 
@@ -1186,8 +1050,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      initBabylonScene("twinCanvas", false);
-      initBabylonScene("motionCanvas", true);
+      initBabylonScene("twinCanvas");
       applyTimelineState(0.0);
       requestAnimationFrame(tickTimeline);
     });
