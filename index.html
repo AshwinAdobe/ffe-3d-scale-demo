@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Firefly Enterprise 3D — One Digital Twin, Infinite Scale</title>
+  <script src="assets/vendor/babylon.js"></script>
+  <script src="assets/vendor/babylonjs.loaders.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0b0e;
+      --surface: #141519;
+      --elevated: #1d1e24;
+      --border: rgba(255, 255, 255, 0.11);
+      --border-hi: rgba(255, 255, 255, 0.24);
+      --adobe-red: #EB1000;
+      --blue: #1473E6;
+      --emerald: #2D9D78;
+      --amber: #E68619;
+      --text: #F5F5F7;
+      --muted: #9A9DA8;
+      --font: "Adobe Clean", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      --mono: "SF Mono", "JetBrains Mono", Menlo, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Adobe Header */
+    .hud-top {
+      height: 58px;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11, 11, 14, 0.92);
+      z-index: 40;
+      flex-shrink: 0;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .adobe-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--adobe-red);
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+      display: grid;
+      place-items: center;
+    }
+
+    .brand-name {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-tag {
+      font-size: 12px;
+      color: var(--muted);
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+
+    /* Live Scale Counter */
+    .scale-counter {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 6px 16px;
+      border-radius: 999px;
+    }
+
+    .counter-step {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--muted);
+      transition: color 0.3s ease, transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .counter-step.active {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .counter-num {
+      font-family: var(--mono);
+      font-weight: 800;
+      font-size: 12px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .counter-step.active .counter-num {
+      background: var(--adobe-red);
+      color: #fff;
+    }
+
+    .counter-arrow {
+      color: rgba(255, 255, 255, 0.22);
+      font-size: 11px;
+    }
+
+    /* Stage Viewport */
+    .stage-viewport {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(235, 16, 0, 0.09) 0%, transparent 58%),
+        radial-gradient(circle at 50% 50%, #16171d 0%, #0b0b0e 78%);
+    }
+
+    /* Dynamic Narrative Banner at Top of Viewport */
+    .beat-header {
+      position: absolute;
+      top: 22px;
+      left: 32px;
+      right: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .beat-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      line-height: 1.1;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .beat-subtitle {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 5px;
+      max-width: 640px;
+      transition: opacity 0.25s ease;
+    }
+
+    .total-pill {
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+      padding: 10px 18px;
+      text-align: right;
+    }
+
+    .total-pill .big-count {
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .total-pill .big-label {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 3px;
+    }
+
+    /* SVG Connector Lines from Center Twin to Expanded Nodes */
+    svg.connector-svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .branch-line {
+      stroke: rgba(235, 16, 0, 0.42);
+      stroke-width: 1.6;
+      stroke-dasharray: 6 6;
+      fill: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+
+    .branch-line.visible {
+      opacity: 1;
+      animation: dashFlow 12s linear infinite;
+    }
+
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -240; }
+    }
+
+    /* =====================================================================
+       RADIAL / EXPANDING GRAPH SCENE (TWIN -> PACKSHOTS -> LIFESTYLE)
+       ===================================================================== */
+    .expansion-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .expansion-layer.docked-out {
+      opacity: 0;
+      transform: scale(0.92);
+      pointer-events: none;
+    }
+
+    /* Center Digital Twin Hub */
+    .twin-core {
+      position: absolute;
+      left: 50%;
+      top: 53%;
+      width: 390px;
+      height: 390px;
+      transform: translate(-50%, -50%) scale(1);
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 42%, #262833 0%, #101116 74%);
+      border: 2px solid rgba(235, 16, 0, 0.65);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
+      transition: transform 0.65s cubic-bezier(0.19, 1, 0.22, 1), border-color 0.4s ease;
+      z-index: 15;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .twin-core.compact {
+      transform: translate(-50%, -50%) scale(0.54);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .twin-core.ultra-compact {
+      transform: translate(-50%, -50%) scale(0.38);
+      border-color: var(--adobe-red);
+    }
+
+    #twinCanvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      display: block;
+      cursor: grab;
+    }
+
+    .twin-core-badge {
+      position: absolute;
+      bottom: -16px;
+      background: var(--adobe-red);
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
+    }
+
+    /* Packshot & Lifestyle Cards that Burst Out from Center */
+    .spawn-card {
+      position: absolute;
+      left: 50%;
+      top: 53%;
+      width: 220px;
+      background: var(--surface);
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.72);
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform 0.68s cubic-bezier(0.19, 1, 0.22, 1),
+        opacity 0.45s ease,
+        border-color 0.25s ease;
+      z-index: 12;
+    }
+
+    .spawn-card.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(var(--sc, 1));
+    }
+
+    .spawn-card.receded {
+      opacity: 0.38;
+      transform: translate(calc(-50% + var(--tx) * 0.58), calc(-50% + var(--ty) * 0.58)) scale(0.66);
+      filter: saturate(0.75);
+    }
+
+    .spawn-card.lifestyle-node {
+      width: 268px;
+      border-color: rgba(45, 157, 120, 0.55);
+      z-index: 14;
+    }
+
+    .spawn-card img {
+      width: 100%;
+      height: 138px;
+      object-fit: cover;
+      display: block;
+      background: #070709;
+    }
+
+    .spawn-card.lifestyle-node img {
+      height: 158px;
+    }
+
+    .spawn-meta {
+      padding: 8px 11px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+    }
+
+    .spawn-meta strong {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .spawn-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* =====================================================================
+       ANIMATIONS WITH COPY SHOWCASE WALL (FLOAT, ZOOM IN/OUT, SPINS, BEZIER TOUR)
+       ===================================================================== */
+    .animations-layer {
+      position: absolute;
+      inset: 92px 32px 20px 32px;
+      z-index: 20;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+      opacity: 0;
+      transform: translateY(28px) scale(0.97);
+      pointer-events: none;
+      transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .animations-layer.active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    /* Live Hero Motion Spot */
+    .hero-motion-stage {
+      position: relative;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--border-hi);
+      background: radial-gradient(circle at 66% 42%, rgba(235, 16, 0, 0.38), transparent 55%), #09090c;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.78);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 26px 30px;
+    }
+
+    #motionCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .motion-overlay-top, .motion-overlay-bottom {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .motion-copy-center {
+      position: relative;
+      z-index: 3;
+      max-width: 62%;
+      pointer-events: none;
+    }
+
+    .motion-ribbon {
+      display: inline-block;
+      background: var(--adobe-red);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    .motion-spec-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid var(--border);
+      color: #fff;
+    }
+
+    .motion-headline {
+      font-size: 46px;
+      font-weight: 900;
+      line-height: 0.94;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
+      color: #fff;
+      margin-top: 8px;
+      transition: transform 0.22s ease, opacity 0.22s ease;
+    }
+
+    .motion-tagline {
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.86);
+      margin-top: 10px;
+    }
+
+    .motion-chips {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .motion-chip {
+      background: rgba(11, 11, 14, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+    }
+
+    .motion-cta {
+      background: #fff;
+      color: #09090c;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      padding: 9px 18px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    /* Live Wall of Animated Copy Cards */
+    .spots-wall {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: 1fr;
+      gap: 10px;
+    }
+
+    .spot-mini-card {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+    }
+
+    .spot-mini-card:hover {
+      border-color: var(--border-hi);
+      transform: translateY(-2px);
+    }
+
+    .spot-mini-card.active {
+      border-color: var(--adobe-red);
+      background: linear-gradient(135deg, rgba(235, 16, 0, 0.18), rgba(20, 21, 25, 0.95));
+    }
+
+    .spot-mini-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .spot-mini-top .pill {
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.07);
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .spot-mini-hl {
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      color: #fff;
+      margin: 6px 0 3px;
+    }
+
+    .spot-mini-tag {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
+
+    .spot-mini-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--adobe-red);
+      letter-spacing: 0.06em;
+      margin-top: 6px;
+    }
+
+    /* One-Click Play Overlay */
+    .play-gate {
+      position: absolute;
+      bottom: 26px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 35;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .play-gate.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(12px);
+      pointer-events: none;
+    }
+
+    .one-click-btn {
+      background: var(--adobe-red);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      padding: 13px 26px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.75);
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .one-click-btn:hover {
+      background: #ff2110;
+      transform: scale(1.03);
+    }
+
+    /* Video Player Scrubber Bar at Bottom */
+    .player-bar {
+      height: 66px;
+      background: rgba(14, 15, 19, 0.96);
+      border-top: 1px solid var(--border);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 40;
+      flex-shrink: 0;
+    }
+
+    .play-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--adobe-red);
+      color: #fff;
+      border: none;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      transition: transform 0.15s ease;
+    }
+
+    .play-toggle:hover {
+      transform: scale(1.06);
+    }
+
+    .timeline-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      cursor: pointer;
+    }
+
+    .chapter-labels {
+      display: grid;
+      grid-template-columns: 20% 25% 27% 28%;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .chapter-labels span {
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+
+    .chapter-labels span.active {
+      color: #fff;
+    }
+
+    .scrubber-track {
+      position: relative;
+      height: 7px;
+      background: rgba(255, 255, 255, 0.10);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .scrubber-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--adobe-red), #ff5640);
+      border-radius: 999px;
+    }
+
+    .chapter-ticks {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .chapter-tick {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(11, 11, 14, 0.85);
+    }
+
+    .time-readout {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      min-width: 96px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <header class="hud-top">
+    <div class="brand-row">
+      <div class="adobe-badge">A</div>
+      <div class="brand-name">Adobe Firefly Enterprise 3D</div>
+      <div class="brand-tag">One Digital Twin → Infinite Content Scale</div>
+    </div>
+
+    <div class="scale-counter">
+      <div class="counter-step active" id="stepChip1" onclick="jumpToTime(0.2)">
+        <span>Digital Twin</span>
+      </div>
+      <span class="counter-arrow">→</span>
+      <div class="counter-step" id="stepChip2" onclick="jumpToTime(3.8)">
+        <span>3D Packshots</span>
+      </div>
+      <span class="counter-arrow">→</span>
+      <div class="counter-step" id="stepChip3" onclick="jumpToTime(8.3)">
+        <span>Product Placement + Composite Image</span>
+      </div>
+      <span class="counter-arrow">→</span>
+      <div class="counter-step" id="stepChip4" onclick="jumpToTime(13.2)">
+        <span>Animate 3D + DGR</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CINEMATIC STAGE -->
+  <div class="stage-viewport" id="stageViewport">
+    <!-- Top Narrative Caption & Total Deliverable Counter -->
+    <div class="beat-header">
+      <div>
+        <div class="beat-title" id="beatTitle">Start With One Digital Twin</div>
+      </div>
+
+      <div class="total-pill">
+        <div class="big-count" id="deliverableCount">USDZ</div>
+        <div class="big-label">Active Node</div>
+      </div>
+    </div>
+
+    <!-- EXPANSION LAYER (STAGES 1, 2, 3) -->
+    <div class="expansion-layer" id="expansionLayer">
+      <svg class="connector-svg" viewBox="0 0 1440 820" preserveAspectRatio="none">
+        <!-- 6 Packshot Connector Lines -->
+        <line class="branch-line pack-line" x1="720" y1="435" x2="310" y2="235" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="175" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="1130" y2="235" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="310" y2="625" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="720" y2="675" />
+        <line class="branch-line pack-line" x1="720" y1="435" x2="1130" y2="625" />
+        <!-- 4 Lifestyle Outer Connector Lines -->
+        <line class="branch-line life-line" x1="720" y1="435" x2="225" y2="195" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="1215" y2="195" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="225" y2="660" />
+        <line class="branch-line life-line" x1="720" y1="435" x2="1215" y2="660" />
+      </svg>
+
+      <!-- Center 3D Twin Hub -->
+      <div class="twin-core" id="twinCore">
+        <canvas id="twinCanvas"></canvas>
+        <div class="twin-core-badge">1 CANONICAL TWIN • USDZ</div>
+      </div>
+
+      <!-- 6 Studio Packshot Nodes -->
+      <div class="spawn-card packshot-node" style="--tx: -380px; --ty: -175px;">
+        <img src="assets/packshot-01-hero-three-quarter.png" alt="3/4 Hero Packshot" />
+        <div class="spawn-meta"><strong>3/4 PDP Hero</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+      <div class="spawn-card packshot-node" style="--tx: 0px; --ty: -235px;">
+        <img src="assets/packshot-02-top-emblem-ortho.png" alt="Top Emblem Packshot" />
+        <div class="spawn-meta"><strong>Top Crown Ortho</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+      <div class="spawn-card packshot-node" style="--tx: 380px; --ty: -175px;">
+        <img src="assets/packshot-03-sidewall-knurl-macro.png" alt="Sidewall Knurl Packshot" />
+        <div class="spawn-meta"><strong>Sidewall &amp; Mark</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+      <div class="spawn-card packshot-node" style="--tx: -380px; --ty: 175px;">
+        <img src="assets/packshot-04-dynamic-cant-angle.png" alt="Dynamic Cant Packshot" />
+        <div class="spawn-meta"><strong>Action Cant Tilt</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+      <div class="spawn-card packshot-node" style="--tx: 0px; --ty: 230px;">
+        <img src="assets/packshot-05-low-rink-profile.png" alt="Low Ice Level Packshot" />
+        <div class="spawn-meta"><strong>Ice-Level Low</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+      <div class="spawn-card packshot-node" style="--tx: 380px; --ty: 175px;">
+        <img src="assets/packshot-06-standing-edge-hero.png" alt="Standing Edge Packshot" />
+        <div class="spawn-meta"><strong>Standing Edge</strong><span class="spawn-tag">3D Packshots</span></div>
+      </div>
+
+      <!-- 4 Lifestyle Scene Nodes -->
+      <div class="spawn-card lifestyle-node" style="--tx: -440px; --ty: -215px;">
+        <img src="assets/lifestyle-01-rinkside-dasher-glass.png" alt="Rinkside Dasher Glass" />
+        <div class="spawn-meta"><strong>Rinkside Dasher Glass</strong><span class="spawn-tag">Product Placement</span></div>
+      </div>
+      <div class="spawn-card lifestyle-node" style="--tx: 440px; --ty: -215px;">
+        <img src="assets/lifestyle-02-red-line-fresh-ice.png" alt="Red Line Ice Scene" />
+        <div class="spawn-meta"><strong>Center Red Line Ice</strong><span class="spawn-tag">Composite Image</span></div>
+      </div>
+      <div class="spawn-card lifestyle-node" style="--tx: -440px; --ty: 215px;">
+        <img src="assets/lifestyle-03-locker-tunnel-bench.png" alt="Tunnel Bench Scene" />
+        <div class="spawn-meta"><strong>Locker Tunnel Bench</strong><span class="spawn-tag">Product Placement</span></div>
+      </div>
+      <div class="spawn-card lifestyle-node" style="--tx: 440px; --ty: 215px;">
+        <img src="assets/lifestyle-04-overtime-arena-spotlight.png" alt="Overtime Spotlight Scene" />
+        <div class="spawn-meta"><strong>Overtime Spotlight</strong><span class="spawn-tag">Composite Image</span></div>
+      </div>
+    </div>
+
+    <!-- STAGE 4 LAYER: PLAYABLE ANIMATIONS WITH CAMPAIGN COPY -->
+    <div class="animations-layer" id="animationsLayer">
+      <div class="hero-motion-stage" id="heroMotionStage">
+        <div class="motion-overlay-top">
+          <span class="motion-ribbon" id="motionRibbon">SUDDEN DEATH</span>
+          <span class="motion-spec-badge" id="motionSpec">MOTION: FLOAT</span>
+        </div>
+
+        <div class="motion-copy-center">
+          <div class="motion-headline" id="motionHeadline">OVERTIME HAS TEETH</div>
+          <div class="motion-tagline" id="motionTagline">Stay loud when the third-period clock goes quiet.</div>
+        </div>
+
+        <canvas id="motionCanvas"></canvas>
+
+        <div class="motion-overlay-bottom">
+          <div class="motion-chips" id="motionChips">
+            <span class="motion-chip">FANATICS MARK</span>
+            <span class="motion-chip">USDZ TWIN</span>
+            <span class="motion-chip">FLOAT MOTION</span>
+          </div>
+          <div class="motion-cta" id="motionCta">LOCK IN ↗</div>
+        </div>
+      </div>
+
+      <div class="spots-wall" id="spotsWall"></div>
+    </div>
+
+    <!-- Prominent One-Click Play Trigger -->
+    <div class="play-gate" id="playGate">
+      <button class="one-click-btn" onclick="restartFromBeginning()">
+        <span>▶ Scale</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- BOTTOM VIDEO TIMELINE & CONTROLS -->
+  <footer class="player-bar">
+    <button class="play-toggle" id="playToggleBtn" onclick="togglePlay()">❚❚</button>
+
+    <div class="timeline-wrap" id="timelineWrap" onclick="scrubTimeline(event)">
+      <div class="chapter-labels">
+        <span id="chap1" class="active" onclick="event.stopPropagation(); jumpToTime(0.2)">Digital Twin</span>
+        <span id="chap2" onclick="event.stopPropagation(); jumpToTime(3.8)">3D Packshots</span>
+        <span id="chap3" onclick="event.stopPropagation(); jumpToTime(8.3)">Product Placement + Composite Image</span>
+        <span id="chap4" onclick="event.stopPropagation(); jumpToTime(13.2)">Animate 3D + DGR</span>
+      </div>
+      <div class="scrubber-track">
+        <div class="scrubber-fill" id="scrubberFill"></div>
+        <div class="chapter-ticks">
+          <div class="chapter-tick" style="left: 20%;"></div>
+          <div class="chapter-tick" style="left: 45%;"></div>
+          <div class="chapter-tick" style="left: 72%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="time-readout" id="timeReadout">00:00 / 00:18</div>
+  </footer>
+
+  <script>
+    const DURATION = 18.0;
+    let isPlaying = true;
+    let currentTime = 0.0;
+    let lastFrameTime = performance.now();
+    let currentBeat = 0;
+    let activeSpotIdx = 0;
+    let lastAutoSpotSwitch = 0;
+
+    // Strictly the 4 allowed animation primitives: Float, Zoom In/Out, Spins, Bezier Tour
+    const SPOTS = [
+      {
+        headline: "OVERTIME HAS TEETH",
+        tagline: "Stay loud when the third-period clock goes quiet.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "LOCK IN ↗",
+        motion: "float",
+        label: "Float",
+        bg: "radial-gradient(circle at 68% 42%, rgba(235, 16, 0, 0.44), transparent 56%), #09090c",
+        chips: ["ANIMATE 3D", "DGR", "FLOAT"]
+      },
+      {
+        headline: "BRING THE BARN",
+        tagline: "From warmup glass to the top-shelf net cord.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "DROP IN ↗",
+        motion: "zoom",
+        label: "Zoom In / Out",
+        bg: "radial-gradient(circle at 65% 38%, rgba(255, 48, 30, 0.40), transparent 54%), radial-gradient(circle at 25% 75%, rgba(20, 115, 230, 0.22), #08090d)",
+        chips: ["ANIMATE 3D", "DGR", "ZOOM IN/OUT"]
+      },
+      {
+        headline: "OWN THE RED LINE",
+        tagline: "Built for heavy slapshots and center-ice authority.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "HIT THE ICE ↗",
+        motion: "spins",
+        label: "Spins",
+        bg: "radial-gradient(circle at 68% 46%, rgba(235, 16, 0, 0.42), transparent 52%), #07080b",
+        chips: ["ANIMATE 3D", "DGR", "SPINS"]
+      },
+      {
+        headline: "NO QUIET ENTRANCE",
+        tagline: "Bold Fanatics red across crown and sidewall.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "CLAIM YOURS ↗",
+        motion: "bezier",
+        label: "Bezier Tour",
+        bg: "radial-gradient(circle at 70% 48%, rgba(227, 27, 21, 0.36), transparent 55%), #0a0a0e",
+        chips: ["ANIMATE 3D", "DGR", "BEZIER TOUR"]
+      },
+      {
+        headline: "ICE LEVEL AUTHORITY",
+        tagline: "Precision emblem detail from every camera sweep.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "INSPECT SPEC ↗",
+        motion: "bezier",
+        label: "Bezier Tour",
+        bg: "radial-gradient(circle at 66% 44%, rgba(124, 196, 255, 0.28), transparent 52%), radial-gradient(circle at 30% 70%, rgba(235, 16, 0, 0.26), #080a0f)",
+        chips: ["ANIMATE 3D", "DGR", "BEZIER TOUR"]
+      },
+      {
+        headline: "TAPE TO TAPE",
+        tagline: "Crisp passes. Clean celly. Official Fanatics emblem.",
+        ribbon: "ANIMATE 3D + DGR",
+        cta: "RUN THE PLAY ↗",
+        motion: "spins",
+        label: "Spins",
+        bg: "radial-gradient(circle at 64% 44%, rgba(235, 16, 0, 0.38), transparent 54%), radial-gradient(circle at 25% 68%, rgba(230, 134, 25, 0.22), #09090c)",
+        chips: ["ANIMATE 3D", "DGR", "SPINS"]
+      }
+    ];
+
+    const wallEl = document.getElementById("spotsWall");
+    SPOTS.forEach((s, idx) => {
+      const card = document.createElement("div");
+      card.className = "spot-mini-card" + (idx === 0 ? " active" : "");
+      card.innerHTML = `
+        <div class="spot-mini-top">
+          <span>ANIMATE 3D + DGR</span>
+          <span class="pill">${s.label}</span>
+        </div>
+        <div>
+          <div class="spot-mini-hl">${s.headline}</div>
+          <div class="spot-mini-tag">${s.tagline}</div>
+        </div>
+        <div class="spot-mini-cta">${s.cta}</div>
+      `;
+      card.onclick = () => {
+        setSpot(idx);
+      };
+      wallEl.appendChild(card);
+    });
+
+    function setSpot(idx) {
+      activeSpotIdx = idx;
+      const s = SPOTS[idx];
+      document.querySelectorAll(".spot-mini-card").forEach((el, i) => {
+        el.classList.toggle("active", i === idx);
+      });
+      document.getElementById("motionRibbon").textContent = s.ribbon;
+      document.getElementById("motionSpec").textContent = `ANIMATE 3D • ${s.label.toUpperCase()} • DGR`;
+      document.getElementById("motionHeadline").textContent = s.headline;
+      document.getElementById("motionTagline").textContent = s.tagline;
+      document.getElementById("motionCta").textContent = s.cta;
+      document.getElementById("heroMotionStage").style.background = s.bg;
+      document.getElementById("motionChips").innerHTML = s.chips
+        .map(c => `<span class="motion-chip">${c}</span>`)
+        .join("");
+    }
+
+    function applyTimelineState(t) {
+      const pct = Math.min(100, Math.max(0, (t / DURATION) * 100));
+      document.getElementById("scrubberFill").style.width = pct + "%";
+      const sec = Math.floor(t).toString().padStart(2, "0");
+      document.getElementById("timeReadout").textContent = `00:${sec} / 00:18`;
+
+      const nextBeat = t < 3.6 ? 1 : t < 8.1 ? 2 : t < 13.0 ? 3 : 4;
+
+      if (nextBeat === 4 && t - lastAutoSpotSwitch > 0.95) {
+        lastAutoSpotSwitch = t;
+        setSpot((activeSpotIdx + 1) % SPOTS.length);
+      }
+
+      if (nextBeat !== currentBeat) {
+        currentBeat = nextBeat;
+        updateStageForBeat(nextBeat);
+      }
+    }
+
+    function updateStageForBeat(beat) {
+      [1, 2, 3, 4].forEach(i => {
+        document.getElementById("stepChip" + i).classList.toggle("active", i <= beat);
+        document.getElementById("chap" + i).classList.toggle("active", i === beat);
+      });
+
+      const twinCore = document.getElementById("twinCore");
+      const expansionLayer = document.getElementById("expansionLayer");
+      const animationsLayer = document.getElementById("animationsLayer");
+      const packCards = document.querySelectorAll(".packshot-node");
+      const lifeCards = document.querySelectorAll(".lifestyle-node");
+      const packLines = document.querySelectorAll(".pack-line");
+      const lifeLines = document.querySelectorAll(".life-line");
+
+      const title = document.getElementById("beatTitle");
+      const countEl = document.getElementById("deliverableCount");
+
+      if (beat === 1) {
+        title.textContent = "Digital Twin";
+        countEl.textContent = "USDZ";
+
+        expansionLayer.classList.remove("docked-out");
+        animationsLayer.classList.remove("active");
+        twinCore.className = "twin-core";
+
+        packCards.forEach(c => c.className = "spawn-card packshot-node");
+        lifeCards.forEach(c => c.classList.remove("visible"));
+        packLines.forEach(l => l.classList.remove("visible"));
+        lifeLines.forEach(l => l.classList.remove("visible"));
+      } else if (beat === 2) {
+        title.textContent = "3D Packshots";
+        countEl.textContent = "3D PACKSHOTS";
+
+        expansionLayer.classList.remove("docked-out");
+        animationsLayer.classList.remove("active");
+        twinCore.className = "twin-core compact";
+
+        packCards.forEach((c, idx) => {
+          c.className = "spawn-card packshot-node visible";
+          c.style.transitionDelay = (idx * 55) + "ms";
+        });
+        lifeCards.forEach(c => c.classList.remove("visible"));
+        packLines.forEach(l => l.classList.add("visible"));
+        lifeLines.forEach(l => l.classList.remove("visible"));
+      } else if (beat === 3) {
+        title.textContent = "Product Placement + Composite Image";
+        countEl.textContent = "COMPOSITE IMAGE";
+
+        expansionLayer.classList.remove("docked-out");
+        animationsLayer.classList.remove("active");
+        twinCore.className = "twin-core ultra-compact";
+
+        packCards.forEach(c => {
+          c.style.transitionDelay = "0ms";
+          c.className = "spawn-card packshot-node visible receded";
+        });
+        lifeCards.forEach((c, idx) => {
+          c.style.transitionDelay = (idx * 65) + "ms";
+          c.classList.add("visible");
+        });
+        packLines.forEach(l => l.classList.remove("visible"));
+        lifeLines.forEach(l => l.classList.add("visible"));
+      } else if (beat === 4) {
+        title.textContent = "Animate 3D + DGR";
+        countEl.textContent = "ANIMATE 3D + DGR";
+
+        expansionLayer.classList.add("docked-out");
+        animationsLayer.classList.add("active");
+      }
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      document.getElementById("playToggleBtn").textContent = isPlaying ? "❚❚" : "▶";
+      if (isPlaying) {
+        document.getElementById("playGate").classList.add("hidden");
+        lastFrameTime = performance.now();
+      }
+    }
+
+    function restartFromBeginning() {
+      currentTime = 0.0;
+      lastAutoSpotSwitch = 0;
+      isPlaying = true;
+      document.getElementById("playToggleBtn").textContent = "❚❚";
+      document.getElementById("playGate").classList.add("hidden");
+      lastFrameTime = performance.now();
+      applyTimelineState(0.0);
+    }
+
+    function jumpToTime(t) {
+      currentTime = t;
+      lastAutoSpotSwitch = t;
+      document.getElementById("playGate").classList.add("hidden");
+      applyTimelineState(currentTime);
+    }
+
+    function scrubTimeline(e) {
+      const rect = document.getElementById("timelineWrap").getBoundingClientRect();
+      const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+      jumpToTime(ratio * DURATION);
+    }
+
+    function tickTimeline(now) {
+      const dt = (now - lastFrameTime) / 1000;
+      lastFrameTime = now;
+      if (isPlaying) {
+        currentTime = (currentTime + dt) % DURATION;
+        applyTimelineState(currentTime);
+      }
+      requestAnimationFrame(tickTimeline);
+    }
+
+    // Cubic Bezier helper for smooth camera/object Bezier Tour
+    function cubicBezier(p0, p1, p2, p3, t) {
+      const u = 1 - t;
+      return u*u*u*p0 + 3*u*u*t*p1 + 3*u*t*t*p2 + t*t*t*p3;
+    }
+
+    function initBabylonScene(canvasId, isMotionSpot) {
+      const canvas = document.getElementById(canvasId);
+      const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, alpha: true });
+      const scene = new BABYLON.Scene(engine);
+      scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+      const cam = new BABYLON.ArcRotateCamera(
+        "cam",
+        -Math.PI / 2.2,
+        1.04,
+        isMotionSpot ? 0.145 : 0.135,
+        new BABYLON.Vector3(0, 0.012, 0),
+        scene
+      );
+      cam.minZ = 0.002;
+      cam.lowerRadiusLimit = 0.08;
+      cam.upperRadiusLimit = 0.28;
+      cam.attachControl(canvas, true);
+
+      const hemi = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+      hemi.intensity = 0.9;
+      hemi.groundColor = new BABYLON.Color3(0.14, 0.14, 0.18);
+
+      const dir = new BABYLON.DirectionalLight("dir", new BABYLON.Vector3(-0.5, -0.8, 0.4), scene);
+      dir.intensity = 2.4;
+
+      const rim = new BABYLON.PointLight("rim", new BABYLON.Vector3(-0.15, 0.08, -0.14), scene);
+      rim.diffuse = new BABYLON.Color3(0.95, 0.14, 0.09);
+      rim.intensity = 1.1;
+
+      const pivot = new BABYLON.TransformNode("pivot", scene);
+
+      BABYLON.SceneLoader.ImportMeshAsync("", "assets/", "fanatics-puck.glb", scene).then(res => {
+        res.meshes.forEach(m => {
+          if (m.name === "__root__") m.parent = pivot;
+        });
+      });
+
+      engine.runRenderLoop(() => {
+        const now = performance.now() / 1000;
+        if (!isMotionSpot) {
+          pivot.rotation.x = 0.32 + 0.08 * Math.sin(now * 1.4);
+          pivot.rotation.y = now * 0.95;
+        } else {
+          const spot = SPOTS[activeSpotIdx];
+          const u = (now % 3.0) / 3.0;
+          const pingPong = u < 0.5 ? u * 2 : (1 - u) * 2;
+          const smoothT = cubicBezier(0, 0.15, 0.85, 1, pingPong);
+
+          // Reset defaults before applying strictly the selected motion
+          pivot.position.set(0.028, -0.002, 0);
+          pivot.rotation.set(0.38, 0, 0);
+          cam.radius = 0.145;
+          cam.alpha = -Math.PI / 2.2;
+          cam.beta = 1.04;
+
+          if (spot.motion === "float") {
+            // 1. Float: gentle vertical levitation + subtle hover bank
+            pivot.position.y = -0.002 + 0.011 * Math.sin(now * 2.4);
+            pivot.rotation.x = 0.38 + 0.07 * Math.sin(now * 1.6);
+            pivot.rotation.z = 0.05 * Math.cos(now * 1.8);
+            pivot.rotation.y = -0.35 + 0.22 * Math.sin(now * 1.1);
+          } else if (spot.motion === "zoom") {
+            // 2. Zoom In / Out: smooth camera dolly in and out along optical axis
+            cam.radius = 0.175 - 0.072 * smoothT;
+            pivot.rotation.x = 0.42 + 0.10 * smoothT;
+            pivot.rotation.y = -0.25 + 0.35 * smoothT;
+          } else if (spot.motion === "spins") {
+            // 3. Spins: continuous crisp 360-degree axial spin showcasing crown + sidewall logo
+            pivot.rotation.x = 0.44;
+            pivot.rotation.y = now * 3.4;
+            pivot.rotation.z = 0.08 * Math.sin(now * 1.7);
+          } else if (spot.motion === "bezier") {
+            // 4. Bezier Tour: multi-point cubic-bezier camera arc from crown top-down to macro sidewall
+            cam.alpha = cubicBezier(-2.35, -1.75, -0.95, -0.45, smoothT);
+            cam.beta = cubicBezier(0.42, 0.72, 1.32, 1.18, smoothT);
+            cam.radius = cubicBezier(0.155, 0.112, 0.118, 0.148, smoothT);
+            pivot.rotation.y = cubicBezier(-0.4, 0.2, 0.9, 1.4, smoothT);
+          }
+        }
+        scene.render();
+      });
+
+      window.addEventListener("resize", () => engine.resize());
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      initBabylonScene("twinCanvas", false);
+      initBabylonScene("motionCanvas", true);
+      applyTimelineState(0.0);
+      requestAnimationFrame(tickTimeline);
+    });
+  </script>
+</body>
+</html>
