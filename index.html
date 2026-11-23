@@ -591,45 +591,6 @@
       margin-top: 6px;
     }
 
-    /* One-Click Play Overlay */
-    .play-gate {
-      position: absolute;
-      bottom: 26px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 35;
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-
-    .play-gate.hidden {
-      opacity: 0;
-      transform: translateX(-50%) translateY(12px);
-      pointer-events: none;
-    }
-
-    .one-click-btn {
-      background: var(--adobe-red);
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.28);
-      padding: 13px 26px;
-      border-radius: 999px;
-      font-size: 14px;
-      font-weight: 800;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.75);
-      transition: transform 0.15s ease, background 0.15s ease;
-    }
-
-    .one-click-btn:hover {
-      background: #ff2110;
-      transform: scale(1.03);
-    }
-
     /* Video Player Scrubber Bar at Bottom */
     .player-bar {
       height: 66px;
@@ -870,13 +831,6 @@
 
       <div class="spots-wall" id="spotsWall"></div>
     </div>
-
-    <!-- Prominent One-Click Play Trigger -->
-    <div class="play-gate" id="playGate">
-      <button class="one-click-btn" onclick="restartFromBeginning()">
-        <span>▶ Scale</span>
-      </button>
-    </div>
   </div>
 
   <!-- BOTTOM VIDEO TIMELINE & CONTROLS -->
@@ -1113,25 +1067,13 @@
       isPlaying = !isPlaying;
       document.getElementById("playToggleBtn").textContent = isPlaying ? "❚❚" : "▶";
       if (isPlaying) {
-        document.getElementById("playGate").classList.add("hidden");
         lastFrameTime = performance.now();
       }
-    }
-
-    function restartFromBeginning() {
-      currentTime = 0.0;
-      lastAutoSpotSwitch = 0;
-      isPlaying = true;
-      document.getElementById("playToggleBtn").textContent = "❚❚";
-      document.getElementById("playGate").classList.add("hidden");
-      lastFrameTime = performance.now();
-      applyTimelineState(0.0);
     }
 
     function jumpToTime(t) {
       currentTime = t;
       lastAutoSpotSwitch = t;
-      document.getElementById("playGate").classList.add("hidden");
       applyTimelineState(currentTime);
     }
 
